@@ -22,7 +22,7 @@ for ((i=1;i<=$num;i++)); do
     environment:
       - DOWNLOADER=meisnick
       - SELECTED_PROJECT=usgovernment
-      - CONCURRENT_ITEMS=3
+      - CONCURRENT_ITEMS=4
     mem_limit: 512m
     mem_reservation: 256m
     stop_signal: SIGINT
