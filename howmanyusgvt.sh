@@ -13,7 +13,6 @@ services:
     command: '--label-enable --cleanup --interval 3600'
     restart: unless-stopped
 EOF
-
 for ((i=1;i<=$num;i++)); do
   port=$((8000 + i))
   cat <<EOF >> warriorsusgvt.yml
@@ -23,9 +22,11 @@ for ((i=1;i<=$num;i++)); do
     environment:
       - DOWNLOADER=meisnick
       - SELECTED_PROJECT=usgovernment
-      - CONCURRENT_ITEMS=6
+      - CONCURRENT_ITEMS=3
+    mem_limit: 512m
+    mem_reservation: 256m
     stop_signal: SIGINT
-    stop_grace_period: 5m 
+    stop_grace_period: 5m
     labels:
       - com.centurylinklabs.watchtower.enable=true
     ports:
