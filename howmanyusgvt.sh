@@ -1,6 +1,6 @@
 #!/bin/bash
 read -p "How many warrior instances? " num
-cat <<EOF > warriors.yml
+cat <<EOF > warriorsusgvt.yml
 version: "3.7"
 services:
   archiveteam-watchtower:
