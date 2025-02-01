@@ -1,36 +1,36 @@
 #!/bin/bash
-read -p "How many warrior instances? " num
-cat <<EOF > warriorsusgvt.yml
-version: "3.7"
-services:
-  archiveteam-watchtower:
-    container_name: archiveteam-watchtower
-    image: containrrr/watchtower
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
-    volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock'
-    command: '--label-enable --cleanup --interval 3600'
-    restart: unless-stopped
-EOF
-for ((i=1;i<=$num;i++)); do
-  port=$((8000 + i))
-  cat <<EOF >> warriorsusgvt.yml
-  archiveteam-warrior-$i:
-    container_name: archiveteam-warrior-$i
-    image: atdr.meo.ws/archiveteam/warrior-dockerfile
-    environment:
-      - DOWNLOADER=meisnick
-      - SELECTED_PROJECT=usgovernment
-      - CONCURRENT_ITEMS=2      # Reduced from 3 to 2
-    mem_limit: 1g              # Increased to 1GB
-    mem_reservation: 512m      # Increased to 512MB
-    stop_signal: SIGINT
-    stop_grace_period: 5m
-    labels:
-      - com.centurylinklabs.watchtower.enable=true
-    ports:
-      - '$port:8001'
-    restart: unless-stopped
-EOF
+
+# Ask for number of warriors
+read -p "How many warrior instances? " num_warriors
+
+# Generate the compose file
+echo "$num_warriors" | ./howmanyusgvt.sh
+
+# Start watchtower first
+docker-compose -f warriorsusgvt.yml up -d archiveteam-watchtower
+echo "Started watchtower, waiting 10 seconds for initialization..."
+sleep 10
+
+# Start warriors in pairs
+for i in $(seq 1 2 $num_warriors); do
+    # Check if this is the last number and it's odd
+    if [ $i -eq $num_warriors ]; then
+        echo "Starting warrior $i..."
+        docker-compose -f warriorsusgvt.yml up -d archiveteam-warrior-$i
+    else
+        j=$((i+1))
+        echo "Starting warriors $i and $j..."
+        docker-compose -f warriorsusgvt.yml up -d archiveteam-warrior-$i archiveteam-warrior-$j
+    fi
+
+    # Don't sleep after the last pair/single
+    if [ $i -lt $num_warriors ]; then
+        echo "Waiting 30 seconds before next pair..."
+        sleep 30
+    fi
 done
+
+# Clean up any orphans at the end
+echo "Cleaning up orphans..."
+docker-compose -f warriorsusgvt.yml up -d --remove-orphans
+echo "Deployment complete!"
