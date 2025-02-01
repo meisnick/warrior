@@ -13,9 +13,10 @@ services:
     command: '--label-enable --cleanup --interval 3600'
     restart: unless-stopped
 EOF
+
 for ((i=1;i<=$num;i++)); do
   port=$((8000 + i))
-  cat <<EOF >> warriors.yml
+  cat <<EOF >> warriorsusgvt.yml
   archiveteam-warrior-$i:
     container_name: archiveteam-warrior-$i
     image: atdr.meo.ws/archiveteam/warrior-dockerfile
